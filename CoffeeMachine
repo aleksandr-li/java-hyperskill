@@ -1,0 +1,252 @@
+package machine;
+
+import java.util.Scanner;
+import static machine.CoffeeMachine.currentState;
+
+enum State {
+    ACTION,
+    BUY,
+    FILL_WATER,
+    FILL_MILK,
+    FILL_BEANS,
+    FILL_CUPS
+}
+
+class Main {
+
+    static Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        boolean exit = false;
+
+        do {
+            if (currentState == State.ACTION) {
+                printMainMenu();
+            }
+
+            String strInput = sc.next();
+
+            if (strInput.equals("exit")) {
+                exit = true;
+            } else if (strInput.equals("back")) {
+                currentState = State.ACTION;
+            } else {
+                CoffeeMachine.machineActions(strInput);
+            }
+        } while (!exit);
+    }
+
+    static void printMainMenu() {
+        System.out.println("\nWrite action (buy, fill, take, remaining, exit): ");
+    }
+}
+
+public class CoffeeMachine {
+
+    static int waterCount = 400;
+    static int milkCount = 540;
+    static int coffeeBeansCount = 120;
+    static int cupsCount = 9;
+    static int moneyCount = 550;
+
+    // espresso
+    static final int espWater = 250;
+    static final int espCoffee = 16;
+    static final int espCost = 4;
+    // latte
+    static final int latWater = 350;
+    static final int latMilk = 75;
+    static final int latCoffee = 20;
+    static final int latCost = 7;
+    // cappuccino
+    static final int capWater = 200;
+    static final int capMilk = 100;
+    static final int capCoffee = 12;
+    static final int capCost = 6;
+
+    static State currentState = State.ACTION;
+
+    public static void machineActions(String str) {
+        switch (currentState) {
+            case ACTION:
+                switch (str) {
+                    case "buy":
+                        currentState = State.BUY;
+                        ActionPrint();
+                        break;
+                    case "fill":
+                        currentState = State.FILL_WATER;
+                        ActionPrint();
+                        break;
+                    case "take":
+                        takeAction();
+                        break;
+                    case "remaining":
+                        coffeeMachineState();
+                        break;
+                    default:
+                        System.out.println("Wrong input");
+                }
+                break;
+            case BUY:
+                buyAction(str);
+                break;
+            case FILL_WATER:
+            case FILL_MILK:
+            case FILL_BEANS:
+                fillAction(str);
+                ActionPrint();
+                break;
+            case FILL_CUPS:
+                fillAction(str);
+                break;
+        }
+    }
+
+    public static void ActionPrint() {
+        String strResult = "";
+        switch (currentState) {
+            case BUY:
+                strResult = "\nWhat do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino,  back - to main menu: ";
+                break;
+            case FILL_WATER:
+                strResult = "\nWrite how many ml of water you want to add: ";
+                break;
+            case FILL_MILK:
+                strResult = "Write how many ml of milk you want to add: ";
+                break;
+            case FILL_BEANS:
+                strResult = "Write how many grams of coffee beans you want to add: ";
+                break;
+            case FILL_CUPS:
+                strResult = "Write how many disposable cups of coffee you want to add: ";
+                break;
+        }
+        System.out.println(strResult);
+    }
+
+    public static void buyAction(String buyInput) {
+        boolean ok = true;
+        int water = 0;
+        int milk = 0;
+        int coffee = 0;
+        int cups = 0;
+
+        String strResult = "";
+
+        switch (buyInput) {
+            case "1": // espresso
+                water = waterCount - espWater;
+                coffee = coffeeBeansCount - espCoffee;
+                cups = cupsCount - 1;
+                if (water >= 0 && coffee >= 0 && cups >= 0) {
+                    strResult = makeCoffee(1);
+                } else {
+                    ok = false;
+                }
+                break;
+            case "2": // latte
+                water = waterCount - latWater;
+                coffee = coffeeBeansCount - latCoffee;
+                milk = milkCount - latMilk;
+                cups = cupsCount - 1;
+                if (water >= 0 && coffee >= 0 && milk > 0 && cups >= 0) {
+                    strResult = makeCoffee(2);
+                } else {
+                    ok = false;
+                }
+                break;
+            case "3": // cappuccino
+                water = waterCount - capWater;
+                coffee = coffeeBeansCount - capCoffee;
+                milk = milkCount - capMilk;
+                cups = cupsCount - 1;
+                if (water >= 0 && coffee >= 0 && milk > 0 && cups >= 0) {
+                    strResult = makeCoffee(3);
+                } else {
+                    ok = false;
+                }
+                break;
+            default: // wrong input
+                strResult = "Wrong input";
+        }
+
+        if (!ok) {
+            if (water < 0) {
+                strResult = "Sorry, not enough water!";
+            } else if (coffee < 0) {
+                strResult = "Sorry, not enough coffee beans!";
+            } else if (milk < 0) {
+                strResult = "Sorry, not enough milk!";
+            } else if (cups < 0) {
+                strResult = "Sorry, not enough disposable cups!";
+            }
+        }
+
+        System.out.println(strResult);
+        currentState = State.ACTION;
+    }
+
+    public static String makeCoffee(int typeOfCoffee) {
+        String strResult = "I have enough resources, making you a coffee!";
+        switch (typeOfCoffee) {
+            case 1: // espresso
+                waterCount = waterCount - espWater;
+                coffeeBeansCount = coffeeBeansCount - espCoffee;
+                cupsCount = cupsCount - 1;
+                moneyCount = moneyCount + espCost;
+                break;
+            case 2: // latte
+                waterCount = waterCount - latWater;
+                coffeeBeansCount = coffeeBeansCount - latCoffee;
+                milkCount = milkCount - latMilk;
+                cupsCount = cupsCount - 1;
+                moneyCount = moneyCount + latCost;
+                break;
+            case 3: // cappuccino
+                waterCount = waterCount - capWater;
+                coffeeBeansCount = coffeeBeansCount - capCoffee;
+                milkCount = milkCount - capMilk;
+                cupsCount = cupsCount - 1;
+                moneyCount = moneyCount + capCost;
+                break;
+        }
+        return strResult;
+    }
+
+    public static void fillAction(String strNum) {
+        switch (currentState) {
+            case FILL_WATER:
+                waterCount = waterCount + Integer.parseInt(strNum);
+                currentState = State.FILL_MILK;
+                break;
+            case FILL_MILK:
+                milkCount = milkCount + Integer.parseInt(strNum);
+                currentState = State.FILL_BEANS;
+                break;
+            case FILL_BEANS:
+                coffeeBeansCount = coffeeBeansCount + Integer.parseInt(strNum);
+                currentState = State.FILL_CUPS;
+                break;
+            case FILL_CUPS:
+                cupsCount = cupsCount + Integer.parseInt(strNum);
+                currentState = State.ACTION;
+                break;
+        }
+    }
+
+    public static void takeAction() {
+        System.out.println("\nI gave you $" + moneyCount);
+        moneyCount = 0;
+    }
+
+    public static void coffeeMachineState() {
+        System.out.println("\nThe coffee machine has: ");
+        System.out.println(waterCount + " ml of water");
+        System.out.println(milkCount + " ml of milk");
+        System.out.println(coffeeBeansCount + " g of coffee beans");
+        System.out.println(cupsCount + " disposable cups");
+        System.out.println("$" + moneyCount + " of money");
+    }
+
+}
